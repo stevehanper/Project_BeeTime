@@ -1,67 +1,41 @@
-import { useState } from 'react';
-import { Menu, Bell } from 'lucide-react';
-import { Logo } from '../components/Logo';
-import { Button } from '../components/Button';
-import { QRScanner } from '../components/QRScanner';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export function Dashboard() {
-  const [currentTime, setCurrentTime] = useState('09:30');
-  const [showScanner, setShowScanner] = useState(false);
-  const [scannerType, setScannerType] = useState<'clockIn' | 'breakStart' | 'breakEnd' | 'clockOut'>('clockIn');
+export const Dashboard = () => {
+    const navigate = useNavigate();
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
 
-  const handleScanButton = (type: typeof scannerType) => {
-    setScannerType(type);
-    setShowScanner(true);
-  };
+    const handleLogout = () => {
+        // 로컬 스토리지에서 인증 정보 삭제
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        
+        // 로그인 페이지로 리다이렉트
+        navigate('/login');
+    };
 
-  return (
-    <div className="min-h-screen bg-cream-50">
-      <header className="bg-white p-4 flex items-center justify-between shadow-sm">
-        <Menu className="w-6 h-6" />
-        <Logo />
-        <Bell className="w-6 h-6" />
-      </header>
+    return (
+        <div className="min-h-screen bg-[#FFFBF6] p-4">
+            <div className="max-w-7xl mx-auto">
+                {/* 상단 헤더 */}
+                <header className="flex justify-between items-center mb-8">
+                    <h1 className="text-2xl font-fredoka">Dashboard</h1>
+                    <div className="flex items-center gap-4">
+                        <span className="font-montserrat">{user.name}</span>
+                        <button
+                            onClick={handleLogout}
+                            className="bg-yellow-400 px-4 py-2 rounded-[15px] text-white font-montserrat hover:bg-yellow-500"
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </header>
 
-      <main className="p-4 max-w-xl mx-auto">
-        <div className="bg-white rounded-lg p-6 shadow-md mb-6">
-          <div className="text-center mb-8">
-            <p className="text-sm text-gray-600">Current Time</p>
-            <h1 className="text-4xl font-bold">{currentTime}</h1>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Button onClick={() => handleScanButton('clockIn')}>
-              Clock In
-            </Button>
-            <Button 
-              variant="secondary"
-              onClick={() => handleScanButton('breakStart')}
-            >
-              Break Start
-            </Button>
-            <Button 
-              variant="secondary"
-              onClick={() => handleScanButton('breakEnd')}
-            >
-              Break End
-            </Button>
-            <Button onClick={() => handleScanButton('clockOut')}>
-              Clock Out
-            </Button>
-          </div>
+                {/* 대시보드 컨텐츠 */}
+                <main>
+                    {/* 여기에 대시보드 내용 추가 */}
+                </main>
+            </div>
         </div>
-      </main>
-
-      {showScanner && (
-        <QRScanner
-          type={scannerType}
-          onClose={() => setShowScanner(false)}
-          onScan={() => {
-            // Handle scan logic
-            setShowScanner(false);
-          }}
-        />
-      )}
-    </div>
-  );
-}
+    );
+};

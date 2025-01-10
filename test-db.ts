@@ -3,20 +3,41 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  // 새 사용자 생성
-  const newUser = await prisma.user.create({
-    data: {
-      email: 'test@example.com',
-      name: '테스트 사용자',
-      passwordHash: 'test1234' // 실제로는 해시된 비밀번호를 사용해야 합니다
-    }
-  })
-  
-  console.log('생성된 사용자:', newUser)
+  // Location 데이터 생성
+  const locations = await Promise.all([
+    prisma.location.create({
+      data: {
+        name: 'Sorrel Cafe & Bar',
+        company: 'Juncafe Opera Pty Ltd',
+        address: 'Shop K333-334, Level 3, Broadway Sydney1 Bay St. Broadway NSW 2007'
+      }
+    }),
+    prisma.location.create({
+      data: {
+        name: 'Baskin Robbins',
+        branch: 'Circular Quay',
+        company: 'Ice Opera Pty Ltd',
+        address: 'Shop 4, Lot 2 Quay Grand 61-63 Macquarie St. Sydney NSW 2000'
+      }
+    }),
+    prisma.location.create({
+      data: {
+        name: 'Baskin Robbins',
+        branch: 'Manly',
+        company: 'Ice Opera Pty Ltd',
+        address: '53 East Esplanade, The Corso, Manly NSW 2095'
+      }
+    }),
+    prisma.location.create({
+      data: {
+        name: 'Sushi Roll',
+        company: 'Top Ryde Sushiroll Pty Ltd',
+        address: 'Shop R3402, Ground Level Piazza Dining, Top Ryde City Shopping Centre 109-129 Blaxland Rd. Ryde NSW 2112'
+      }
+    })
+  ]);
 
-  // 모든 사용자 조회
-  const allUsers = await prisma.user.findMany()
-  console.log('모든 사용자 목록:', allUsers)
+  console.log('생성된 지점들:', locations);
 }
 
 main()

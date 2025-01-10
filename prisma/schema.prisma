@@ -14,7 +14,7 @@ model User {
   id           Int       @id @default(autoincrement())
   name         String    // 사용자 이름
   email        String    @unique  // 이메일 (로그인 아이디)
-  passwordHash String    // 암호화된 비밀번호
+  password     String    // 암호화된 비밀번호
   role         String    @default("EMPLOYEE")  // 사용자 권한 (ADMIN 또는 EMPLOYEE)
   createdAt    DateTime  @default(now())     // 계정 생성일
   updatedAt    DateTime  @updatedAt          // 정보 수정일
