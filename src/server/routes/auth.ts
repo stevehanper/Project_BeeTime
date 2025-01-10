@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../db';
 import { validateRequest } from '../middleware/validateRequest';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
+import { authenticate } from '../middleware/authenticate';
 
 const router = Router();
 
@@ -53,6 +55,8 @@ router.post('/signup', validateRequest(signupSchema), async (req, res) => {
           email,
           password: hashedPassword,
           name,
+          locationId,
+          isProfileComplete: true,
           role: 'EMPLOYEE'
         }
       });
@@ -61,7 +65,7 @@ router.post('/signup', validateRequest(signupSchema), async (req, res) => {
       await tx.locationUser.create({
         data: {
           userId: user.id,
-          locationId: locationId,
+          locationId,
           startDate: new Date()
         }
       });
@@ -69,14 +73,22 @@ router.post('/signup', validateRequest(signupSchema), async (req, res) => {
       return user;
     });
 
-    console.log('회원가입 성공:', { userId: result.id, locationId });
+    // JWT 토큰 생성
+    const token = jwt.sign(
+      { userId: result.id },
+      process.env.JWT_SECRET!,
+      { expiresIn: '7d' }
+    );
 
     res.status(201).json({
       message: '회원가입이 완료되었습니다.',
+      token,
       user: {
         id: result.id,
         email: result.email,
-        name: result.name
+        name: result.name,
+        locationId,
+        isProfileComplete: true
       }
     });
 
@@ -134,6 +146,97 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     console.error('로그인 에러:', error);
     res.status(500).json({ error: '로그인 처리 중 오류가 발생했습니다.' });
+  }
+});
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+    
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return res.status(400).json({ error: '유효하지 않은 토큰입니다.' });
+    }
+
+    let user = await prisma.user.findUnique({
+      where: { email: payload.email }
+    });
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: payload.email,
+          name: payload.name || '',
+          isProfileComplete: false,
+          role: 'EMPLOYEE'
+        }
+      });
+    }
+
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET!,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      token,
+      user,
+      requiresProfileComplete: !user.isProfileComplete
+    });
+  } catch (error) {
+    console.error('Google 로그인 에러:', error);
+    res.status(500).json({ error: 'Google 로그인 처리 중 오류가 발생했습니다.' });
+  }
+});
+
+router.put('/update-user-info', authenticate, async (req, res) => {
+  try {
+    const { userId, name, locationId } = req.body;
+
+    const result = await prisma.$transaction(async (tx) => {
+      // 사용자 정보 업데이트
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: {
+          name,
+          locationId: parseInt(locationId),
+          isProfileComplete: true
+        }
+      });
+
+      // LocationUser 연결 생성
+      await tx.locationUser.create({
+        data: {
+          userId,
+          locationId: parseInt(locationId),
+          startDate: new Date()
+        }
+      });
+
+      return updatedUser;
+    });
+
+    // 새로운 토큰 생성 (자동 로그인을 위해)
+    const token = jwt.sign(
+      { userId: result.id },
+      process.env.JWT_SECRET!,
+      { expiresIn: '7d' }
+    );
+
+    res.json({ 
+      user: result,
+      token
+    });
+  } catch (error) {
+    console.error('사용자 정보 업데이트 에러:', error);
+    res.status(500).json({ error: '사용자 정보 업데이트에 실패했습니다.' });
   }
 });
 

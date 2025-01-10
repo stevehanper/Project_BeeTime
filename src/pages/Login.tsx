@@ -2,15 +2,26 @@ import { Logo } from '../components/Logo';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '../components/Button';
 import GoogleLogo from '../assets/logo_goauth.png';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { GoogleLogin } from '@react-oauth/google';
 
 export function Login() {
   const navigate = useNavigate();
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  
+  useEffect(() => {
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [token, navigate]);
+
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const googleLoginRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,14 +41,63 @@ export function Login() {
         throw new Error(data.error || '로그인에 실패했습니다.');
       }
 
-      // 로그인 성공 시 토큰과 사용자 정보 저장
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Remember me가 체크되어 있으면 localStorage에, 아니면 sessionStorage에 저장
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem('token', data.token);
+      storage.setItem('user', JSON.stringify(data.user));
       
-      // 대시보드로 이동
+      // Remember me 설정 저장
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+      } else {
+        localStorage.removeItem('rememberMe');
+      }
+      
       navigate('/dashboard');
     } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('로그인 중 오류가 발생했습니다.');
+      }
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      const response = await fetch('http://localhost:3000/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          credential: credentialResponse.credential,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem('token', data.token);
+      storage.setItem('user', JSON.stringify(data.user));
+      
+      if (data.requiresProfileComplete) {
+        navigate('/information');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (error) {
       setError(error.message);
+    }
+  };
+
+  const handleGoogleButtonClick = () => {
+    if (googleLoginRef.current) {
+      const button = googleLoginRef.current.querySelector('div[role="button"]');
+      if (button instanceof HTMLElement) {
+        button.click();
+      }
     }
   };
 
@@ -90,6 +150,8 @@ export function Login() {
                 type="checkbox"
                 className="h-4 w-4 rounded border-gray-300"
                 id="remember-me"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
               />
               <label htmlFor="remember-me" className="ml-2 text-[#AB9B9B] text-[14px]">
                 Remember me
@@ -124,14 +186,20 @@ export function Login() {
             </div>
           </div>
 
-          {/* 소셜 로그인 버튼 (현재는 더미 버튼) */}
+          {/* 소셜 로그인 버튼 */}
           <div className="mt-6 flex justify-center">
             <Button 
               variant="ghost"
               size="large"
               icon={GoogleLogo}
-              onClick={() => {/* 구글 로그인 처리 */}}
+              onClick={handleGoogleButtonClick}
             />
+            <div ref={googleLoginRef} className="hidden">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError('Google 로그인에 실패했습니다.')}
+              />
+            </div>
           </div>
         </div>
 

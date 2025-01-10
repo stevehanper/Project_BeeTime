@@ -2,37 +2,43 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../db';
 
+interface JwtPayload {
+  userId: string;
+}
+
 declare global {
   namespace Express {
     interface Request {
-      user?: { id: string };
+      user?: any;
     }
   }
 }
 
-export async function authenticate(
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction
-) {
+) => {
   try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return res.status(401).json({ message: 'Authentication required' });
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ error: '인증이 필요합니다.' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+    const token = authHeader.split(' ')[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
     });
 
     if (!user) {
-      return res.status(401).json({ message: 'User not found' });
+      return res.status(401).json({ error: '유효하지 않은 토큰입니다.' });
     }
 
-    req.user = { id: user.id };
+    req.user = user;
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Invalid token' });
+    return res.status(401).json({ error: '인증에 실패했습니다.' });
   }
-}
+};

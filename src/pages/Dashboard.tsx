@@ -3,12 +3,17 @@ import { useNavigate } from 'react-router-dom';
 
 export const Dashboard = () => {
     const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
 
     const handleLogout = () => {
-        // 로컬 스토리지에서 인증 정보 삭제
+        // localStorage의 모든 인증 관련 데이터 삭제
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('rememberMe');
+        
+        // sessionStorage의 모든 인증 관련 데이터 삭제
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
         
         // 로그인 페이지로 리다이렉트
         navigate('/login');
