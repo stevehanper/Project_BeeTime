@@ -1,29 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Logo } from '../components/Logo';
 import { AlertModal } from '../components/AlertModal';
 import BackButtonIcon from '../assets/btn_icon_arrow.png';
 import DownArrowIcon from '../assets/icon_under_arrow.png';
+import { Logo } from '../components/Logo';
 import { Button } from '../components/Button';
 
 export const Signup = () => {
     const navigate = useNavigate();
+    // 회원가입 폼 데이터 상태 관리
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
         locationId: ''
     });
+    // 지점 목록 상태 관리
     const [locations, setLocations] = useState([]);
+     // 일반 에러 메시지 상태
     const [error, setError] = useState('');
+    // 회원가입 성공 모달 표시 상태
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+     // 각 입력 필드별 유효성 검사 에러 메시지 상태
     const [formErrors, setFormErrors] = useState({
         name: '',
         email: '',
         password: '',
         locationId: ''
     });
-
+    
+    // 컴포넌트 마운트 시 지점 목록 가져오기
     useEffect(() => {
         const fetchLocations = async () => {
             try {
@@ -38,6 +44,7 @@ export const Signup = () => {
         fetchLocations();
     }, []);
 
+    // 폼 유효성 검사 함수
     const validateForm = () => {
         const errors = {
             name: '',
@@ -81,14 +88,17 @@ export const Signup = () => {
         return isValid;
     };
 
+    // 폼 제출 처리 함수
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
+        // 폼 유효성 검사
         if (!validateForm()) {
             return;
         }
 
         try {
+            // 일반 회원가입 API 호출
             const response = await fetch('http://localhost:3000/auth/signup', {
                 method: 'POST',
                 headers: {
@@ -96,43 +106,53 @@ export const Signup = () => {
                 },
                 body: JSON.stringify({
                     ...formData,
-                    locationId: parseInt(formData.locationId)
+                    locationId: parseInt(formData.locationId) // locationId를 숫자로 변환
                 }),
             });
 
             const data = await response.json();
             
+             // API 응답이 실패인 경우 에러 처리
             if (!response.ok) {
                 throw new Error(data.error || '회원가입에 실패했습니다.');
             }
 
-            // 토큰 저장
+             // 로그인 정보 로컬 스토리지에 저장
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
             
+            // 회원가입 성공 모달 표시
             setShowSuccessModal(true);
         } catch (error) {
             setError(error.message);
         }
     };
 
+    // 회원가입 성공 모달 확인 버튼 클릭 핸들러
     const handleSuccessConfirm = () => {
-        setShowSuccessModal(false);
-        navigate('/dashboard');
+        setShowSuccessModal(false);   // 모달 닫기
+        navigate('/dashboard');       // 메인 페이지인 대시보드로 이동
     };
 
     return (
+      // 전체 페이지 컨테이너 - 세로 중앙 정렬, 배경색 설정
         <div className="flex flex-col items-center justify-center min-h-[100vh] bg-[#FFFBF6] p-2">
+             {/* 회원가입 폼 컨테이너 - 최대 너비 제한 */}
             <div className="w-full max-w-sm space-y-8">
+                {/* 뒤로가기 버튼 */}
                 <Link to="/" className="flex items-center text-gray-500 text-lg">
                     <Button variant="back" size="medium" icon={BackButtonIcon} />
                 </Link>
 
+                {/* 페이지 제목 */}
                 <h1 className="text-3xl font-bold mb-6 font-fredoka text-center">Create Account</h1>
                 
+                {/* 에러 메시지 표시 영역 */}
                 {error && <div className="text-red-500 text-center">{error}</div>}
                 
+                 {/* 회원가입 폼 */}
                 <form onSubmit={handleSubmit} className="py-10 space-y-4 font-montserrat">
+                   {/* 이름 입력 필드 */}
                     <div>
                         <input
                             type="text"
@@ -142,9 +162,11 @@ export const Signup = () => {
                             className="w-full border border-[#C5ABAB] px-4 py-3 rounded-[15px] placeholder:text-[#AB9B9B] font-montserrat"
                             required
                         />
+                        {/* 이름 필드 에러 메시지 */}
                         {formErrors.name && <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>}
                     </div>
                     
+                    {/* 이메일 입력 필드 */}
                     <div>
                         <input
                             type="email"
@@ -154,9 +176,11 @@ export const Signup = () => {
                             className="w-full border border-[#C5ABAB] px-4 py-3 rounded-[15px] placeholder:text-[#AB9B9B] font-montserrat"
                             required
                         />
+                        {/* 이메일 필드 에러 메시지 */}
                         {formErrors.email && <p className="text-red-500 text-sm mt-1">{formErrors.email}</p>}
                     </div>
 
+                    {/* 비밀번호 입력 필드 */}
                     <div>
                         <input
                             type="password"
@@ -166,9 +190,11 @@ export const Signup = () => {
                             className="w-full border border-[#C5ABAB] px-4 py-3 rounded-[15px] placeholder:text-[#AB9B9B] font-montserrat"
                             required
                         />
+                         {/* 비밀번호 필드 에러 메시지 */}
                         {formErrors.password && <p className="text-red-500 text-sm mt-1">{formErrors.password}</p>}
                     </div>
 
+                    {/* 근무지 선택 드롭다운 */}
                     <div className="relative">
                         <select
                             value={formData.locationId}
@@ -177,17 +203,23 @@ export const Signup = () => {
                             required
                         >
                             <option value="" disabled>Work Place</option>
+                             {/* 지점 목록을 옵션으로 표시 */}
                             {locations.map((location) => (
                                 <option key={location.id} value={location.id}>
                                     {location.name} {location.branch ? `(${location.branch})` : ''}
                                 </option>
                             ))}
                         </select>
+                         {/* 드롭다운 화살표 아이콘 */}
                         <img src={DownArrowIcon} alt="arrow" className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" />
+                        {/* 근무지 필드 에러 메시지 */}
                         {formErrors.locationId && <p className="text-red-500 text-sm mt-1">{formErrors.locationId}</p>}
                     </div>
                     
+                    {/* 버튼 영역과의 간격 */}
                     <div className='py-8'></div>
+                    
+                    {/* 회원가입 버튼 영역 */}
                     <div className="flex items-center w-full">
                         <Logo className="mr-2" />
                         <button type="submit" className="flex-1 bg-yellow-400 ml-10 py-3 font-montserrat text-white hover:bg-yellow-500 rounded-[15px]">
@@ -197,6 +229,7 @@ export const Signup = () => {
                 </form>
             </div>
             
+            {/* 회원가입 성공 시 표시되는 모달 */}
             <AlertModal
                 isOpen={showSuccessModal}
                 message="회원가입이 성공적으로 완료되었습니다!"

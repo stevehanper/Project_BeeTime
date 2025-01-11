@@ -1,46 +1,158 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import BeeIcon from '../assets/logo_bee2.svg';
+import MenuIcon from '../assets/btn_icon_menu.png';
+import HomeIcon from '../assets/home.png';
+import UserIcon from '../assets/user.png';
+import TimeIcon from '../assets/time.png';
+import LogoutIcon from '../assets/logout.png';
+import CancelIcon from '../assets/btn_icon_cancel.png';
+import HomeIconHover from '../assets/home_hover.png';
+import UserIconHover from '../assets/user_hover.png';
+import TimeIconHover from '../assets/time_hover.png';
+import CircleBg from '../assets/circle_bg.svg';
+import { getCurrentNSWTime, formatNSWTime, formatNSWDate } from '../utils/dateTime';
 
 export const Dashboard = () => {
-    const navigate = useNavigate();
-    const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}');
+  const navigate = useNavigate();
+  const [currentTime, setCurrentTime] = useState(getCurrentNSWTime());
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    const handleLogout = () => {
-        // localStorage의 모든 인증 관련 데이터 삭제
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('rememberMe');
-        
-        // sessionStorage의 모든 인증 관련 데이터 삭제
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('user');
-        
-        // 로그인 페이지로 리다이렉트
-        navigate('/login');
-    };
+  // 시간 업데이트 (1초마다)
+  useEffect(() => {
+      const timer = setInterval(() => {
+          setCurrentTime(getCurrentNSWTime());
+      }, 1000);
+      return () => clearInterval(timer);
+  }, []);
 
-    return (
-        <div className="min-h-screen bg-[#FFFBF6] p-4">
-            <div className="max-w-7xl mx-auto">
-                {/* 상단 헤더 */}
-                <header className="flex justify-between items-center mb-8">
-                    <h1 className="text-2xl font-fredoka">Dashboard</h1>
-                    <div className="flex items-center gap-4">
-                        <span className="font-montserrat">{user.name}</span>
-                        <button
-                            onClick={handleLogout}
-                            className="bg-yellow-400 px-4 py-2 rounded-[15px] text-white font-montserrat hover:bg-yellow-500"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </header>
+  // NSW 시간대로 변환
+  const nswTime = formatNSWTime(currentTime);
+  const nswDate = formatNSWDate(currentTime);
 
-                {/* 대시보드 컨텐츠 */}
-                <main>
-                    {/* 여기에 대시보드 내용 추가 */}
-                </main>
-            </div>
-        </div>
-    );
+  const handleLogout = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('rememberMe');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
+      navigate('/login');
+  };
+
+  return (
+      <div className="min-h-screen bg-[#FFFBF6] relative">
+          {/* 햄버거 메뉴 버튼 */}
+          <button 
+              className={`absolute top-6 right-6 z-50 ${isMenuOpen ? 'hidden' : ''}`}
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+              <img src={MenuIcon} alt="menu" className="w-12 h-12" />
+          </button>
+
+          {/* 사이드 메뉴 */}
+          {isMenuOpen && (
+              <div className="fixed top-0 right-0 h-full w-[500px] bg-[#A77750] shadow-lg z-40">
+                  {/* 닫기 버튼 */}
+                  <button 
+                      className="absolute top-6 right-6 z-50"
+                      onClick={() => setIsMenuOpen(false)}
+                  >
+                      <img src={CancelIcon} alt="close" className="w-8 h-8" />
+                  </button>
+
+                  {/* 메뉴 컨테이너 - flex-col과 h-full을 사용하여 수직 정렬 제어 */}
+                  <div className="flex flex-col h-full pt-40 px-0">
+                      {/* 상단 메뉴 아이템들 */}
+                      <div className="space-y-5">
+                          <div 
+                              className="flex items-center p-8 hover:bg-[#FFE26C] group cursor-pointer  px-20"
+                              onClick={() => navigate('/dashboard')}
+                          >
+                              <img src={HomeIcon} alt="home" className="w-6 h-6 mr-4 group-hover:hidden" />
+                              <img src={HomeIconHover} alt="home" className="w-6 h-6 mr-4 hidden group-hover:block" />
+                              <span className="text-white group-hover:text-black font-montserrat font-medium text-lg">Home</span>
+                          </div>
+                          <div 
+                              className="flex items-center p-8 hover:bg-[#FFE26C] group cursor-pointer px-20"
+                              onClick={() => navigate('/account')}
+                          >
+                              <img src={UserIcon} alt="account" className="w-6 h-6 mr-4 group-hover:hidden" />
+                              <img src={UserIconHover} alt="account" className="w-6 h-6 mr-4 hidden group-hover:block" />
+                              <span className="text-white group-hover:text-black font-montserrat font-medium text-lg">Account</span>
+                          </div>
+                          <div 
+                              className="flex items-center p-8 hover:bg-[#FFE26C] group cursor-pointer px-20"
+                              onClick={() => navigate('/time-activity')}
+                          >
+                              <img src={TimeIcon} alt="time" className="w-6 h-6 mr-4 group-hover:hidden" />
+                              <img src={TimeIconHover} alt="time" className="w-6 h-6 mr-4 hidden group-hover:block" />
+                              <span className="text-white group-hover:text-black font-montserrat font-medium text-lg">Time Activity</span>
+                          </div>
+                      </div>
+
+                      {/* 로그아웃 버튼 - mt-auto로 하단에 고정 */}
+                      <div 
+                          className="mt-auto mb-10 flex items-center p-4 cursor-pointer rounded-2xl px-20"
+                          onClick={handleLogout}
+                      >
+                          <img src={LogoutIcon} alt="logout" className="w-6 h-6 mr-4" />
+                          <span className="text-[#FFE26C] font-montserrat font-medium text-lg">Logout</span>
+                      </div>
+                  </div>
+              </div>
+          )}
+
+          {/* 메인 컨텐츠 */}
+          <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#F7E3CA]">
+              {/* 시계 영역 - 원형 배경 추가 */}
+              <div className="relative text-center mb-20">
+                  {/* 배경 원 - 크기 조정 */}
+                  <img 
+                      src={CircleBg} 
+                      alt="background" 
+                      className="w-[300px] h-[300px] object-contain"
+                  />
+                  {/* 꿀벌 로고 아이콘 */}
+                  <img 
+                      src={BeeIcon} 
+                      alt="bee" 
+                      className="absolute w-30 h-30 left-1/2 -translate-x-1/2 -top-12"
+                  />
+                  {/* 시계 컨텐츠 */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full">
+                      <h2 className="text-[#B17F4A] text-xl mb-8 font-montserrat">Current Time</h2>
+                      <div className="text-6xl font-montserrat mb-4">{nswTime}</div>
+                      <div className="text-xl font-montserrat">{nswDate}</div>
+                  </div>
+              </div>
+
+              {/* 버튼 그리드 */}
+              <div className="grid grid-cols-2 gap-6 w-full max-w-sm px-4">
+                  {/* Clock In 버튼 */}
+                  <button className="bg-[#FDCF17] text-white p-6 rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[120px] w-[160px]">
+                      <span className="text-[16pt]">Clock</span>
+                      <span className="text-[16pt] -mt-2">In</span>
+                  </button>
+                  
+                  {/* Break Start 버튼 */}
+                  <button className="bg-[#A07907] text-white p-6 rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[120px] w-[160px]">
+                      <span className="text-[16pt]">Break</span>
+                      <span className="text-[16pt] -mt-2">Start</span>
+                  </button>
+                  
+                  {/* Break End 버튼 */}
+                  <button className="bg-[#A07907] text-white p-6 rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[120px] w-[160px]">
+                      <span className="text-[16pt]">Break</span>
+                      <span className="text-[16pt] -mt-2">End</span>
+                  </button>
+                  
+                  {/* Clock Out 버튼 */}
+                  <button className="bg-[#FDCF17] text-white p-6 rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[120px] w-[160px]">
+                      <span className="text-[16pt]">Clock</span>
+                      <span className="text-[16pt] -mt-2">Out</span>
+                  </button>
+              </div>
+          </div>
+      </div>
+  );
 };

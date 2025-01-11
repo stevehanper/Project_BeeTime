@@ -4,6 +4,8 @@ export interface User {
   email: string;
   name: string;
   role: 'ADMIN' | 'USER';
+  locationId?: number;
+  isProfileComplete?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
