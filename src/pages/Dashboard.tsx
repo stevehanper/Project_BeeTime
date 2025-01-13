@@ -51,7 +51,7 @@ export const Dashboard = () => {
 
           {/* 사이드 메뉴 */}
           {isMenuOpen && (
-              <div className="fixed top-0 right-0 h-full w-[500px] bg-[#A77750] shadow-lg z-40">
+              <div className="fixed top-0 right-0 h-full w-[375px] bg-[#A77750] shadow-lg z-40">
                   {/* 닫기 버튼 */}
                   <button 
                       className="absolute top-6 right-6 z-50"
@@ -103,14 +103,14 @@ export const Dashboard = () => {
           )}
 
           {/* 메인 컨텐츠 */}
-          <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#F7E3CA]">
+          <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-[#F7E3CA] pt-20">
               {/* 시계 영역 - 원형 배경 추가 */}
-              <div className="relative text-center mb-20">
+              <div className="relative text-center m-10">
                   {/* 배경 원 - 크기 조정 */}
                   <img 
                       src={CircleBg} 
                       alt="background" 
-                      className="w-[300px] h-[300px] object-contain"
+                      className="w-[250px] h-[250px] object-contain"
                   />
                   {/* 꿀벌 로고 아이콘 */}
                   <img 
@@ -127,29 +127,29 @@ export const Dashboard = () => {
               </div>
 
               {/* 버튼 그리드 */}
-              <div className="grid grid-cols-2 gap-6 w-full max-w-sm px-4">
+              <div className="grid grid-cols-2 gap-4 w-full max-w-[320px] mx-auto px-4">
                   {/* Clock In 버튼 */}
-                  <button className="bg-[#FDCF17] text-white p-6 rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[120px] w-[160px]">
-                      <span className="text-[16pt]">Clock</span>
-                      <span className="text-[16pt] -mt-2">In</span>
+                  <button className="bg-[#FDCF17] text-white rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[100px] w-full">
+                      <span className="text-[14pt]">Clock</span>
+                      <span className="text-[14pt] -mt-2">In</span>
                   </button>
                   
                   {/* Break Start 버튼 */}
-                  <button className="bg-[#A07907] text-white p-6 rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[120px] w-[160px]">
-                      <span className="text-[16pt]">Break</span>
-                      <span className="text-[16pt] -mt-2">Start</span>
+                  <button className="bg-[#A07907] text-white  rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[100px] w-full">
+                      <span className="text-[14pt]">Break</span>
+                      <span className="text-[14pt] -mt-2">Start</span>
                   </button>
                   
                   {/* Break End 버튼 */}
-                  <button className="bg-[#A07907] text-white p-6 rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[120px] w-[160px]">
-                      <span className="text-[16pt]">Break</span>
-                      <span className="text-[16pt] -mt-2">End</span>
+                  <button className="bg-[#A07907] text-white rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[100px] w-full">
+                      <span className="text-[14pt]">Break</span>
+                      <span className="text-[14pt] -mt-2">End</span>
                   </button>
                   
                   {/* Clock Out 버튼 */}
-                  <button className="bg-[#FDCF17] text-white p-6 rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[120px] w-[160px]">
-                      <span className="text-[16pt]">Clock</span>
-                      <span className="text-[16pt] -mt-2">Out</span>
+                  <button className="bg-[#FDCF17] text-white rounded-3xl font-montserrat font-semibold flex flex-col items-center justify-center h-[100px] w-full">
+                      <span className="text-[14pt]">Clock</span>
+                      <span className="text-[14pt] -mt-2">Out</span>
                   </button>
               </div>
           </div>
