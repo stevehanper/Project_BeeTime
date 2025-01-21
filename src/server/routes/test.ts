@@ -4,6 +4,7 @@ import { prisma } from '../db';
 const router = Router();
 
 router.get('/test-db', async (req, res) => {
+  console.log('Received request for /test-db');
   try {
     const locations = await prisma.location.findMany();
     res.json(locations);
